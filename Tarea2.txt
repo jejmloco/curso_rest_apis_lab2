@@ -1,0 +1,95 @@
+1)	Investigar sobre el significado y concepto de CORS en ambientes web y el uso de políticas en ASP.NET
+
+	CORS: Cross-Origin Resource Sharing (intercambio de recursos de origen cruzado).
+	Cross Origin Resource Sharing es un estándar W3C (World Wide Web Consortium) que permite a un servidor configurar la política same-origin. Utilizando CORS, un servidor puede permitir explícitamente algunas peticiones de otros dominios (cross-origin) y, al mismo tiempo, rechazar otras.
+	La same-origin policy (SOP o política de seguridad del mismo origen) prohíbe que se carguen datos de servidores ajenos al acceder a una página web. Todos los datos deben provenir de un mismo servidor. Se trata de una medida de seguridad, ya que JavaScript y CSS podrían cargar contenido de otros servidores (y, con este, también contenido malicioso).
+	El estándar de Intercambio de Recursos de Origen Cruzado trabaja añadiendo nuevas cabeceras HTTP que permiten a los servidores describir el conjunto de orígenes que tienen permiso para leer la información usando un explorador web.  Adicionalmente, para métodos de solicitud HTTP que causan efectos secundarios en datos del usuario (y en particular, para otros métodos HTTP distintos a GET, o para la utilización de POST con algunos tipos MIME), la especificación sugiere que los exploradores "verifiquen" la solicitud, solicitando métodos soportados desde el servidor con un método de solicitud HTTP OPTIONS, y luego, con la "aprobación" del servidor, enviar la verdadera solicitud con el método de solicitud HTTP verdadero. Los servidores pueden también notificar a los clientes cuando sus "credenciales" (incluyendo Cookies y datos de autenticación HTTP) deben ser enviados con solicitudes.
+	¿Qué peticiones utiliza CORS?
+	Este estándar es utilizado para habilitar solicitudes HTTP de sitios cruzados para:
+		•	Invocaciones de las APIs XMLHttpRequest o Fetch en una manera de sitio cruzado.
+		•	Fuentes Web (para usos de fuente en dominios cruzados @font-face dentro de CSS), para que los servidores puedan mostrar fuentes TrueType que sólo puedan ser cargadas por sitios cruzados y usadas por sitios web que lo tengan permitido.
+		•	Texturas WebGL.
+		•	Imágenes dibujadas en patrones usando drawImage.
+		•	Hojas de estilo (para acceso CSSOM).
+		•	Scripts (para excepciones inmutadas).
+	
+	Uso compartido de recursos de origen cruzado (CORS):
+		•	No es una característica de seguridad, CORS relaja la seguridad. Una API no es más segura al permitir CORS.
+		•	Permite que un servidor permita explícitamente algunas solicitudes de origen cruzado mientras rechaza otras.
+		•	Es más seguro y flexible que las técnicas anteriores, como JSONP.
+
+	Existen diferentes encabezados CORS y cada una aborda un aspecto distinto:
+		•	Access-Control-Allow-Origin: ¿qué origen está permitido?
+		•	Access-Control-Allow-Credentials: ¿también se aceptan solicitudes cuando el modo de credenciales es incluir (include)?
+		•	Access-Control-Allow-Headers: ¿qué cabeceras pueden utilizarse?
+		•	Access-Control-Allow-Methods: ¿qué métodos de petición HTTP están permitidos?
+		•	Access-Control-Expose-Headers: ¿qué cabeceras pueden mostrarse?
+		•	Access-Control-Max-Age: ¿cuándo pierde su validez la solicitud preflight?
+		•	Access-Control-Request-Headers: ¿qué header HTTP se indica en la solicitud preflight?
+		•	Access-Control-Request-Method: ¿qué método de petición HTTP se indica en la solicitud preflight?
+		•	Origin: ¿de qué origen proviene la solicitud?
+
+	Habilitar CORS
+	Hay tres formas de habilitar CORS:
+		•	En middleware utilizando una política con nombre o una política predeterminada.
+		•	Uso de enrutamiento de punto final.
+		•	Con el atributo [EnableCors].
+
+	Opciones de política CORS
+		1)	Establecer los orígenes permitidos.
+		AllowAnyOrigin: permite solicitudes CORS de todos los orígenes con cualquier esquema (http o https). AllowAnyOrigin es inseguro porque cualquier sitio web puede realizar solicitudes de origen cruzado a la aplicación. 
+		Afecta las solicitudes de verificación previa y el Access-Control-Allow-Origin.
+
+		2)	Establecer los métodos HTTP permitidos.
+		AllowAnyMethod:
+			- Permite cualquier método HTTP:
+			- Afecta las solicitudes de verificación previa y el Access-Control-Allow-Methods.
+
+		3)	Establecer los encabezados de solicitud permitidos.
+		Permite que se envíen encabezados específicos en una solicitud CORS.
+
+		AllowAnyHeader afecta las solicitudes de verificación previa y el encabezado Access-Control-Request-Headers.
+		Una política de CORS Middleware que coincida con los encabezados específicos especificados por WithHeaders solo es posible cuando los encabezados enviados Access-Control-Request-Headers coinciden exactamente con los encabezados indicados en WithHeaders.
+
+		4)	Establecer los encabezados de respuesta expuestos.
+		Los encabezados de respuesta que están disponibles de forma predeterminada son:
+			- Cache-Control
+			- Content-Language
+			- Content-Type
+			- Expires
+			- Last-Modified
+			- Pragma
+		La especificación CORS llama a estos encabezados encabezados de respuesta simple.
+
+		5)	Credenciales en solicitudes de origen cruzado.
+		Las credenciales requieren un manejo especial en una solicitud CORS. De forma predeterminada, el navegador no envía credenciales con una solicitud de origen cruzado. Las credenciales incluyen cookies y esquemas de autenticación HTTP. Para enviar credenciales con una solicitud de origen cruzado, el cliente debe establecer XMLHttpRequest.withCredentials en true.
+
+		El servidor debe permitir las credenciales. Para permitir credenciales de origen cruzado, llame a AllowCredentials.
+
+		La respuesta HTTP incluye un encabezado Access-Control-Allow-Credentials, que le dice al navegador que el servidor permite credenciales para una solicitud de origen cruzado.
+
+		Si el navegador envía credenciales pero la respuesta no incluye un encabezado Access-Control-Allow-Credentials válido, el navegador no expone la respuesta a la aplicación y la solicitud de origen cruzado falla.
+
+		Permitir credenciales de origen cruzado es un riesgo de seguridad. Un sitio web en otro dominio puede enviar las credenciales de un usuario que inició sesión a la aplicación en nombre del usuario sin el conocimiento del usuario.
+
+		6)	Establecer el tiempo de vencimiento de la verificación previa.
+		Para algunas solicitudes CORS, el navegador envía una solicitud OPTIONS adicional antes de realizar la solicitud real. Esta solicitud se denomina solicitud de verificación previa. El navegador puede omitir la solicitud de verificación previa si se cumplen todas las condiciones siguientes:
+
+			- El método de solicitud es GET, HEAD o POST.
+			- La aplicación no establece encabezados de solicitud distintos Accept, Accept-Language, Content-Language, Content-Type, o Last-Event-ID.
+			- El encabezado Content-Type, si se establece, tiene uno de los siguientes valores:
+				o	application/x-www-form-urlencoded
+				o	multipart/form-data
+				o	text/plain
+		La regla sobre los encabezados de solicitud establecida para la solicitud del cliente se aplica a los encabezados que la aplicación establece al llamar setRequestHeader al objeto XMLHttpRequest. La especificación CORS llama a estos encabezados “author request headers”. La regla no se aplica a los encabezados que puede establecer el navegador, tales como User-Agent, Host, o Content-Length.
+
+2)	Investigar sobre el uso de la librería FluentValidation para ASP.NET. Investigar e indicar para qué funciona y en qué escenarios considera que se podría utilizar con Web APIs
+
+	Es una biblioteca de validación para .NET. Esto se separará de la lógica de negocio. Por lo tanto, tiene una ventaja sobre la validación de anotaciones de datos.
+	FluentValidation admite la integración con ASP.NET Core 3.1 o ASP.NET Core que se ejecuta en .NET 5. Una vez habilitado, MVC usará FluentValidation para validar los objetos que la infraestructura de enlace del modelo pasa a las acciones del controlador.
+	Fluent Validation contiene bibliotecas .NET y la validación se realiza mediante la expresión Lambda. Utilice Fluent Validation cuando desee crear una validación avanzada y compleja para los datos del usuario.
+	Utilice Fluent Validation si desea implementar una validación compleja o de alto nivel.
+	Para habilitar la integración de MVC, deberá agregar una referencia al ensamblado FluentValidation.AspNetCore en su proyecto web instalando el paquete NuGet apropiado o desde línea de comando.
+
+
+
